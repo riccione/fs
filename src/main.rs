@@ -19,6 +19,23 @@ fn main() {
     let p = Path::new(&args.path);
 
     if p.is_dir() {
-        println!("{:?}", p);
+
+        for x in WalkDir::new(p) {
+            let x = x.unwrap();
+            let filename = x.file_name().to_string_lossy();
+
+            let size_bytes = x.metadata().unwrap().len();
+            let f_path = x.path().display();
+            let created = x.metadata()
+                .unwrap()
+                .created()
+                .expect("Cannot unwrap");
+
+            println!("{} {} {:?}",
+                f_path,
+                size_bytes,
+                created
+            )
+        }
     }
 }
