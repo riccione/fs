@@ -2,9 +2,11 @@ use std::path::Path;
 use clap::Parser;
 use walkdir::WalkDir;
 use std::process::exit;
+use sha2::{Sha256, Digest};
+use std::{fs, io};
 
 /*
-TODO: Count hash for each file
+TODO: Fix the issue with limit 0 => no output, should stdout all files
 TODO: save output to csv file
 */
 #[derive(Parser, Debug)]
@@ -18,6 +20,16 @@ struct Args {
     limit: u64,
 }
 
+fn get_hash(path: &Path) -> String {
+    let mut file = fs::File::open(path)
+        .expect("Err");
+    let mut hasher = Sha256::new();
+    let n = io::copy(&mut file, &mut hasher)
+        .expect("Err");
+    let hash = hasher.finalize();
+    return hex::encode(hash);
+}
+
 fn main() {
     let args = Args::parse();
     let p = Path::new(&args.path);
@@ -27,7 +39,7 @@ fn main() {
 
         for x in WalkDir::new(p) {
             let x = x.unwrap();
-            let filename = x.file_name().to_string_lossy();
+            let _filename = x.file_name().to_string_lossy();
 
             let size_bytes = x.metadata().unwrap().len();
             let f_path = x.path().display();
@@ -36,12 +48,15 @@ fn main() {
                 .created()
                 .expect("Cannot unwrap");
 
-            if limit > 0 && size_bytes > limit {
-                println!("{} {} {:?}",
-                    f_path,
-                    size_bytes,
-                    created
-                );
+            if !x.path().is_dir() {
+                if limit > 0 && size_bytes > limit {
+                    println!("{} {} {:?} {}",
+                        f_path,
+                        size_bytes,
+                        created,
+                        get_hash(x.path())
+                    );
+                }
             }
         }
     }
