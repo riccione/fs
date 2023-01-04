@@ -6,7 +6,6 @@ use sha2::{Sha256, Digest};
 use std::{fs, io};
 
 /*
-TODO: Fix the issue with limit 0 => no output, should stdout all files
 TODO: save output to csv file
 */
 #[derive(Parser, Debug)]
@@ -43,17 +42,16 @@ fn main() {
 
             let size_bytes = x.metadata().unwrap().len();
             let f_path = x.path().display();
-            let created = x.metadata()
+            let _created = x.metadata()
                 .unwrap()
                 .created()
                 .expect("Cannot unwrap");
 
             if !x.path().is_dir() {
-                if limit > 0 && size_bytes > limit {
-                    println!("{} {} {:?} {}",
+                if size_bytes > limit {
+                    println!("{} {} {}",
                         f_path,
                         size_bytes,
-                        created,
                         get_hash(x.path())
                     );
                 }
