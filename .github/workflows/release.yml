@@ -61,12 +61,12 @@ jobs:
 
     - name: Strip binary
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
-      run: strip target/${{ matrix.target }}/release/sd
+      run: strip target/${{ matrix.target }}/release/fs
 
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v1-release
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/${{ matrix.target }}/release/sd
-        asset_name: sd-${{ steps.version.outputs.VERSION }}-${{ matrix.target }}
+        file: target/${{ matrix.target }}/release/fs
+        asset_name: fs-${{ steps.version.outputs.VERSION }}-${{ matrix.target }}
         tag: ${{ github.ref }}
