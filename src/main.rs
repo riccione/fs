@@ -4,6 +4,7 @@ use walkdir::WalkDir;
 use std::process::exit;
 use sha2::{Sha256, Digest};
 use std::{fs, io};
+use serde::Serialize;
 
 /*
 TODO: add Result to get_hash fn
@@ -21,6 +22,13 @@ struct Args {
     limit: u64,
 }
 
+#[derive(Serialize)]
+struct FileScan {
+    filename: String,
+    size: u64,
+    path: String,
+}
+
 fn get_hash(path: &Path) -> String {
     let mut file = fs::File::open(path)
         .expect("Err");
@@ -31,12 +39,24 @@ fn get_hash(path: &Path) -> String {
     return hex::encode(hash);
 }
 
+fn to_csv(vs: &Vec<FileScan>) {
+    println!("{}", vs.len());
+    //let mut wtr = csv::Writer::from_path()
+    let mut wtr = csv::Writer::from_writer(io::stdout());
+    for xs in vs {
+        wtr.serialize(xs);
+    }
+    wtr.flush().expect("Cannot flush");
+}
+
 fn main() {
     let args = Args::parse();
     let p = Path::new(&args.path);
     let limit = args.limit;
 
     if p.is_dir() {
+
+        let mut xs :Vec<FileScan> = Vec::new();
 
         for x in WalkDir::new(p) {
             let x = x.unwrap();
@@ -51,14 +71,23 @@ fn main() {
 
             if !x.path().is_dir() {
                 if size_bytes > limit {
+                    let x = FileScan {
+                        filename: f_path.to_string(),
+                        size: size_bytes,
+                        path: get_hash(x.path()).to_string(),
+                    };
+                    xs.push(x);
+                    /*
                     println!("{} {} {}",
                         f_path,
                         size_bytes,
                         get_hash(x.path())
                     );
+                    */
                 }
             }
         }
+        to_csv(&xs);
     }
     exit(0);
 }
