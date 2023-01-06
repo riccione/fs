@@ -13,31 +13,17 @@ jobs:
             target: x86_64-unknown-linux-gnu
             use-cross: false
 
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-musl
-            use-cross: false
-
-          - os: ubuntu-latest
-            target: arm-unknown-linux-gnueabihf
-            use-cross: true
-
           - os: windows-latest
-            target: x86_64-pc-windows-msvc
+            target: x86_64-pc-windows-gnu
             use-cross: false
 
           - os: macos-latest
             target: x86_64-apple-darwin
             use-cross: false
 
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            use-cross: false
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-      with:
-        fetch-depth: 1
 
     - name: Set the version
       id: version
@@ -47,10 +33,8 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-        profile: minimal
         override: true
         target: ${{ matrix.target }}
-
 
     - name: Build
       uses: actions-rs/cargo@v1
