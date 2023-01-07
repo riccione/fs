@@ -5,6 +5,7 @@ use std::process::exit;
 use sha2::{Sha256, Digest};
 use std::{fs, io};
 use serde::Serialize;
+use std::error::Error;
 
 /*
 TODO: add Result to get_hash fn
@@ -33,20 +34,20 @@ fn get_hash(path: &Path) -> String {
     let mut file = fs::File::open(path)
         .expect("Err");
     let mut hasher = Sha256::new();
-    let n = io::copy(&mut file, &mut hasher)
+    let _bytes = io::copy(&mut file, &mut hasher)
         .expect("Err");
     let hash = hasher.finalize();
     return hex::encode(hash);
 }
 
-fn to_csv(vs: &Vec<FileScan>) {
-    println!("{}", vs.len());
+fn to_csv(vs: &Vec<FileScan>) -> Result<(), Box<dyn Error>>{
     //let mut wtr = csv::Writer::from_path()
     let mut wtr = csv::Writer::from_writer(io::stdout());
     for xs in vs {
-        wtr.serialize(xs);
+        wtr.serialize(xs)?;
     }
     wtr.flush().expect("Cannot flush");
+    Ok(())
 }
 
 fn main() {
@@ -77,17 +78,16 @@ fn main() {
                         path: get_hash(x.path()).to_string(),
                     };
                     xs.push(x);
-                    /*
-                    println!("{} {} {}",
-                        f_path,
-                        size_bytes,
-                        get_hash(x.path())
-                    );
-                    */
                 }
             }
         }
-        to_csv(&xs);
+        if let Err(err) = to_csv(&xs) {
+            println!("{}", err);
+            exit(1);
+        }
+    } else {
+        println!("The path provided is not a directory");
+        exit(1);
     }
     exit(0);
 }
