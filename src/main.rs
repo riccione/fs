@@ -13,7 +13,7 @@ TODO: add new arg for csv export, delimeter
 TODO: save output to csv file
 */
 #[derive(Parser, Debug)]
-#[command(author, version = "0.2.0", about, long_about = None)]
+#[command(author, version = "0.2.1", about, long_about = None)]
 struct Args {
     /// Path to the target directory
     #[arg(short, long)]
