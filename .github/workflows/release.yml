@@ -51,12 +51,12 @@ jobs:
 
     - name: Strip binary
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
-      run: strip /release/fs
+      run: strip release/fs
 
     - name: Build archive
       shell: bash
       run: |
-        staging="rustfmt_${{ matrix.build }}_${{ github.event.release.tag_name }}"
+        staging="fs_${{ matrix.build }}_${{ github.event.release.tag_name }}"
         mkdir -p "$staging"
 
         cp {README.md,LICENSE} "$staging/"
