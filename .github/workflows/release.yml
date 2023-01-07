@@ -47,7 +47,7 @@ jobs:
       with:
         use-cross: ${{ matrix.use-cross }}
         command: build
-        args: --release --locked
+        args: --release --locked -v
 
     - name: Strip binary
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
