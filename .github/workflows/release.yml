@@ -9,15 +9,16 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - build: linux-x86_64
+            os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             use-cross: false
-
-          - os: windows-latest
+          - build: x86_64-pc-windows-gnu
+            os: windows-latest
             target: x86_64-pc-windows-gnu
             use-cross: false
-
-          - os: macos-latest
+          - build: macos-x86_64
+            os: macos-latest
             target: x86_64-apple-darwin
             use-cross: false
 
@@ -35,6 +36,11 @@ jobs:
         toolchain: stable
         override: true
         target: ${{ matrix.target }}
+    
+    - name: Add mingw64 to path for x86_64-gnu
+      run: echo "C:\msys64\mingw64\bin" >> $GITHUB_PATH
+      if: matrix.os == 'windows-latest'
+      shell: bash
 
     - name: Build
       uses: actions-rs/cargo@v1
@@ -47,10 +53,28 @@ jobs:
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
       run: strip target/${{ matrix.target }}/release/fs
 
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/${{ matrix.target }}/release/fs
-        asset_name: fs-${{ steps.version.outputs.VERSION }}-${{ matrix.target }}
-        tag: ${{ github.ref }}
+    - name: Build archive
+      shell: bash
+      run: |
+        staging="rustfmt_${{ matrix.build }}_${{ github.event.release.tag_name }}"
+        mkdir -p "$staging"
+        cp {README.md,Configurations.md,LICENSE} "$staging/"
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          cp target/release/{rustfmt.exe,cargo-fmt.exe,rustfmt-format-diff.exe,git-rustfmt.exe} "$staging/"
+          7z a "$staging.zip" "$staging"
+          echo "ASSET=$staging.zip" >> $GITHUB_ENV
+        else
+          cp target/release/{rustfmt,cargo-fmt,rustfmt-format-diff,git-rustfmt} "$staging/"
+          tar czf "$staging.tar.gz" "$staging"
+          echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
+        fi
+
+		- name: Upload Release Asset
+			uses: actions/upload-release-asset@v1
+			env:
+				GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+			with:
+				upload_url: ${{ github.event.release.upload_url }}
+				asset_path: ${{ env.ASSET }}
+				asset_name: ${{ env.ASSET }}
+				asset_content_type: application/octet-stream
