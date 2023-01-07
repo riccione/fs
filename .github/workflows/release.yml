@@ -47,11 +47,11 @@ jobs:
       with:
         use-cross: ${{ matrix.use-cross }}
         command: build
-        args: --release --locked -v
+        args: --release --locked
 
     - name: Strip binary
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
-      run: strip release/fs
+      run: strip target/release/fs
 
     - name: Build archive
       shell: bash
