@@ -47,11 +47,11 @@ jobs:
       with:
         use-cross: ${{ matrix.use-cross }}
         command: build
-        args: --target ${{ matrix.target }} --release --locked
+        args: --release --locked
 
     - name: Strip binary
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
-      run: strip target/${{ matrix.target }}/release/fs
+      run: strip /release/fs
 
     - name: Build archive
       shell: bash
@@ -62,11 +62,11 @@ jobs:
         cp {README.md,LICENSE} "$staging/"
 
         if [ "${{ matrix.os }}" = "windows-latest" ]; then
-          cp target/release/{rustfmt.exe,cargo-fmt.exe,rustfmt-format-diff.exe,git-rustfmt.exe} "$staging/"
+          cp target/release/{fs.exe} "$staging/"
           7z a "$staging.zip" "$staging"
           echo "ASSET=$staging.zip" >> $GITHUB_ENV
         else
-          cp target/release/{rustfmt,cargo-fmt,rustfmt-format-diff,git-rustfmt} "$staging/"
+          cp target/release/{fs} "$staging/"
           tar czf "$staging.tar.gz" "$staging"
           echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
         fi
