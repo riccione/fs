@@ -12,14 +12,17 @@ jobs:
           - build: linux-x86_64
             os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            artifact_name: fs
             use-cross: false
           - build: x86_64-pc-windows-gnu
             os: windows-latest
             target: x86_64-pc-windows-gnu
+            artifact_name: fs.exe
             use-cross: false
           - build: macos-x86_64
             os: macos-latest
             target: x86_64-apple-darwin
+            artifact_name: fs
             use-cross: false
 
     steps:
@@ -53,30 +56,10 @@ jobs:
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
       run: strip target/release/fs
 
-    - name: Build archive
-      shell: bash
-      run: |
-        staging="fs_${{ matrix.build }}_${{ github.event.release.tag_name }}"
-        mkdir -p "$staging"
-
-        cp {README.md,LICENSE} "$staging/"
-
-        if [ "${{ matrix.os }}" = "windows-latest" ]; then
-          cp target/release/fs.exe "$staging/"
-          7z a "$staging.zip" "$staging"
-          echo "ASSET=$staging.zip" >> $GITHUB_ENV
-        else
-          cp target/release/fs "$staging/"
-          tar czf "$staging.tar.gz" "$staging"
-          echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
-        fi
-
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
       with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ${{ env.ASSET }}
-        asset_name: ${{ env.ASSET }}
-        asset_content_type: application/octet-stream
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/${{ matrix.artifact_name }}
+        asset_name: ${{ matrix.asset_name }}
+        tag: ${{ github.ref }}
