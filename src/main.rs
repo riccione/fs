@@ -85,6 +85,8 @@ fn main() {
             println!("{}", err);
             exit(1);
         }
+        let json = serde_json::to_string(&xs).expect("Data cannot be serialized to JSON");
+        println!("{}", json);
     } else {
         println!("The path provided is not a directory");
         exit(1);
