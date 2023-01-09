@@ -8,12 +8,12 @@ use serde::Serialize;
 use std::error::Error;
 
 /*
-TODO: add Result to get_hash fn
-TODO: add new arg for csv export, delimeter
-TODO: save output to csv file
+TODO: add Result to to_json
+TODO: add new arg for csv delimeter
+TODO: save output to file
 */
 #[derive(Parser, Debug)]
-#[command(author, version = "0.2.1", about, long_about = None)]
+#[command(author, version = "0.3.0", about, long_about = None)]
 struct Args {
     /// Path to the target directory
     #[arg(short, long)]
@@ -21,6 +21,9 @@ struct Args {
     /// Filter by file limit
     #[arg(short, long, default_value_t = 0)]
     limit: u64,
+    /// Serialization format
+    #[arg(short, long, default_value = "csv")]
+    format: String,
 }
 
 #[derive(Serialize)]
@@ -50,10 +53,17 @@ fn to_csv(vs: &Vec<FileScan>) -> Result<(), Box<dyn Error>>{
     Ok(())
 }
 
+fn to_json(vs: &Vec<FileScan>) {
+    let json = serde_json::to_string(vs)
+        .expect("Data cannot be serialized to JSON");
+    println!("{}", json);
+}
+
 fn main() {
     let args = Args::parse();
     let p = Path::new(&args.path);
     let limit = args.limit;
+    let format = args.format;
 
     if p.is_dir() {
 
@@ -81,12 +91,14 @@ fn main() {
                 }
             }
         }
-        if let Err(err) = to_csv(&xs) {
-            println!("{}", err);
-            exit(1);
+        if format == "csv" {
+            if let Err(err) = to_csv(&xs) {
+                println!("{}", err);
+                exit(1);
+            }
+        } else {
+            to_json(&xs);
         }
-        let json = serde_json::to_string(&xs).expect("Data cannot be serialized to JSON");
-        println!("{}", json);
     } else {
         println!("The path provided is not a directory");
         exit(1);
