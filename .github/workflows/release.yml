@@ -1,6 +1,9 @@
 name: Release
 
-on: [push]
+on: 
+  push:
+    tags:
+      - '*'
 
 jobs:
   build-release:
@@ -13,16 +16,19 @@ jobs:
             os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             artifact_name: fs
+            asset_name: fs_x86_64-unknown-linux-gnu
             use-cross: false
           - build: x86_64-pc-windows-gnu
             os: windows-latest
             target: x86_64-pc-windows-gnu
             artifact_name: fs.exe
+            asset_name: fs_x86_64-pc-windows-gnu.exe
             use-cross: false
           - build: macos-x86_64
             os: macos-latest
             target: x86_64-apple-darwin
             artifact_name: fs
+            asset_name: fs_x86_64-apple-darwin
             use-cross: false
 
     steps:
@@ -61,5 +67,5 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: target/release/${{ matrix.artifact_name }}
-        asset_name: ${{ matrix.target }}
+        asset_name: ${{ asset_name }}
         tag: ${{ github.ref }}
